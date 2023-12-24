@@ -1,0 +1,1 @@
+run "C:\Program Files\Google\Chrome\Application\chrome.exe" "https://calendar.google.com/calendar/r"

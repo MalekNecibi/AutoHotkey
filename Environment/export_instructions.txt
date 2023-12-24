@@ -1,0 +1,5 @@
+# https://stackoverflow.com/a/69368942/
+
+reg query "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" >> SystemEnvVariablesSourceMachine.txt
+reg query "HKEY_CURRENT_USER\Environment">>UserEnvVariablesSourceMachine.txt
+
