@@ -158,12 +158,14 @@ Loop 10 {
 ; ^!Down::MouseMove, 960, 600 ; Center of XPS
 
 ; ^!m::Run bthprops.cpl ; "Quick-Connect" to Bluetooth Device (#k instead)
-^!m::RunAsUser("rundll32.exe", "shell32.dll,Control_RunDLL bthprops.cpl") ; Run bthprops.cpl 
+; ^!m::RunAsUser("rundll32./exe", "shell32.dll,Control_RunDLL bthprops.cpl") ; Run bthprops.cpl 
 ^+#1::ConnectBT("Powerbeats Pro")
 ^+#2::ConnectBT("Malek's QC35")
 ^+#3::ConnectBT("Tribit Stormbox")
-^+#4::ConnectBT("TOZO-T10")
-^+#5::ConnectBT("TOZO-T10 (White)")
+; ^+#4::ConnectBT("TOZO-T10")
+^+#4::ConnectBT("TOZO-T10 (Black)", "58:fc:c6:39:ae:0a")
+; ^+#5::ConnectBT("TOZO-T10 (White)")
+^+#5::ConnectBT("TOZO-T10 (White)", "58:fc:c6:bc:27:58")
 ^+#0::ConnectBT(0)
 
 $>!\:: ; calc.exe Shortcuts, only 1 instance
@@ -523,7 +525,7 @@ $Tab::
 
 
 ; Functions - Begin
-ConnectBT(DeviceName := "") { ; Input 0 to fix issues with Connect Menu
+ConnectBT(DeviceName := "", MAC :="") { ; Input 0 to fix issues with Connect Menu
     ToolTip(,DeviceName)
     ; Turn on Bluetooth
     btScriptPath := A_WorkingDir . "\Files\scripts\bluetooth.ps1"
@@ -535,40 +537,51 @@ ConnectBT(DeviceName := "") { ; Input 0 to fix issues with Connect Menu
         Sleep 1000
     }
     
-    if (0 != DeviceName && WinActive("CONNECT") && WinActive("ahk_class Windows.UI.Core.CoreWindow")) {
-        ; If Connect Menu already open, safely close it
-        ConnectBT(0)
-        Sleep 500
-    }
     
-    Send #k ; Open Quick Connect Menu
-    WinWaitActive, CONNECT,, 1
-    if ErrorLevel {
-        ToolTip(1500, "ConnectBT() Error: Couldn't open CONNECT QuickMenu")
-        ;Tooltip ConnectBT() Error: Couldn't open CONNECT QuickMenu
-        ;SetTimer, RemoveToolTip, -2500
-        ; Optional, open Bluetooth Settings menu if Connect QuickMenu doesn't open
-        ; if (0 != DeviceName)
-            ; Run bthprops.cpl
-        return
-    }
+    if ("" == MAC) {
+        ; Use Windows Bluetooth Devices Menu
+        if (0 != DeviceName && WinActive("CONNECT") && WinActive("ahk_class Windows.UI.Core.CoreWindow")) {
+            ; If Connect Menu already open, safely close it
+            ConnectBT(0)
+            Sleep 500
+        }
+        
+        ; Open Quick Connect Menu
+        ; Send #k
+        Run, ms-settings-connectabledevices:devicediscovery
+        WinWaitActive, CONNECT,, 1
+        if ErrorLevel {
+            ToolTip(1500, "ConnectBT() Error: Couldn't open CONNECT QuickMenu")
+            ; Optional, open Bluetooth Settings menu if Connect QuickMenu doesn't open
+            ; if (0 != DeviceName)
+                ; Run bthprops.cpl
+            return
+        }
+        
+        ; Fixes Connect QuickMenu issues
+        if (0 == DeviceName) {
+            SendInput -{Tab}-{Tab}-{Tab}-{Tab}-{Tab}-{Esc}
+        
+        ; Search and Select the given device
+        } else {
+            Sleep 500
+            if WinActive("CONNECT")
+                Send {Enter}
+            Sleep 750
+            if WinActive("CONNECT")
+                SendInput %DeviceName%
+            Sleep 500
+            if WinActive("CONNECT")
+                SendInput +{Tab 3}{Down}{Up}{Enter}
+        }
     
-    ; Fixes Connect QuickMenu issues
-    if (0 == DeviceName) {
-        SendInput -{Tab}-{Tab}-{Tab}-{Tab}-{Tab}-{Esc}
-    
-    ; Search and Select the given device
     } else {
-        Sleep 500
-        if WinActive("CONNECT")
-            Send {Enter}
-        Sleep 750
-        if WinActive("CONNECT")
-            SendInput %DeviceName%
-        Sleep 500
-        if WinActive("CONNECT")
-            SendInput +{Tab 3}{Down}{Up}{Enter}
+        ; Use Bluetooth Command Line Tools (via MAC address)
+        RunWait, "C:\Program Files (x86)\Bluetooth Command Line Tools\bin\btcom.exe" -b'%MAC%' -r -s110b,, Hide
+        RunWait, "C:\Program Files (x86)\Bluetooth Command Line Tools\bin\btcom.exe" -b'%MAC%' -c -s110b,, Hide
+        Tooltip
     }
+    
     return
 }
 
@@ -681,7 +694,7 @@ Tooltip(time:=1500, message:="", X:="", Y:="", WhichToolTip:="")
     if time is not number   ; If Var is Type doesn't allow inline bracing
     {
         ; Throw error, but still show Tooltip message (Recursive Call)
-        Tooltip(,"Tooltip() ERROR: Invalid Time Provided (" time ")`n" . message, X, Y, WhichToolTip)
+        Tooltip(,"Tooltip() WARNING: Invalid Time Provided (" time ")`r`n" . message, X, Y, WhichToolTip)
     
     } else {
         Tooltip, %message%, %X%, %Y%, %WhichToolTip%
