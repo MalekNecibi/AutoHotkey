@@ -24,8 +24,6 @@ EnvGet, Malek, Malek
 EnvGet, AHK, AHK
 if Malek
     MMPath := Malek . "MiscMacro.ahk"
-if AHK
-    CompileC := AHK . "\XPS Programs\CompileC.ahk"
 if FileExist(MMPath) 
     Menu, Tray, Add, Reset &MiscMacro, ResetMisc
 if FileExist("Files\lib\NoInput.ahk")
@@ -34,20 +32,18 @@ if FileExist(Malek . "\TechKeys.ahk")
     Menu, Tray, Add, Launch &TechKeys, TechKeys
 FinishHeader(1)
 
-; debug := 1    ; Forgot what this does, commented out 4/26/22
-
 GroupAdd, linux_shell, "ahk_exe ubuntu.exe"
 GroupAdd, linux_shell, "ahk_exe mintty.exe"
 GroupAdd, linux_shell, "ahk_exe MobaXterm.exe"
 GroupAdd, linux_shell, "ahk_exe wsl.exe"
+; GroupAdd, linux_shell, "ahk_exe WindowsTerminal.exe"
 
 #If
 ; Remaps - Begin
 
 ; Hotstrings - Begin
-:*:mnygp@::mnygp@umsystem.edu ; Autocomplete address
-:*:Malek_::Malek_Necibi
-:*:e8e::{U+45}lect{U+72}on{U+69}cs8{U+45}xce{U+70}ti{U+6F}nLi{U+66}e{Left 4}
+; :*:Malek_::Malek_Necibi
+; :*:Malek@::Malek@Necibi.us
 ; HotStrings - End
 
 ; Hotkey Command Remaps - Begin
@@ -103,6 +99,7 @@ Loop 10 {
     return
     
 ^+#!x:: ; Force Pause+Suspend All AHK Scripts
+    Suspend, Permit
     DetectHiddenWindows On
     WinGet, ID, List, ahk_class AutoHotkey
     Loop, %id%
@@ -143,10 +140,6 @@ Loop 10 {
 
 >^Esc::Goto, NoInput ; Launch NoInput
 ^+#y::Goto, YouTubeSpeed ; Launch YouTubeSpeed
-
-; ^+#c::Run %CompileC% ; Run Compiler Script
-; ^+#!c::return ; Run notepad++.exe "%CompileC%" ; Edit Compiler Script
-; ^#!c::Winkill, ahk_exe ubuntu.exe ; Stop Compiler Script
 
 ; ^+#t::Goto, TechKeys ; Run TechKeys Macro Remap
 ; ^+#!t::return ; Run, notepad++.exe %Malek%\TechKeys.ahk ; Edit TechKeys Mappings
@@ -196,12 +189,6 @@ $+F7::BrightnessSetter.SetBrightness(+1)
 +#m::return     ; Avoid common misclick
 ^+!m::RunAsUser("C:\Program Files\Notepad++\notepad++.exe", MMPath)
 ; ^+!m:: Run, notepad++.exe %Malek%\MiscMacro.ahk ; Edit MiscMacro if Taskbar Selected
-
-; ~#x:: ; Close WinX Menu when opening Run dialog
-;     Hotkey, #r, WinXRun, On
-;     KeyWait, r, D T5
-;     Hotkey, #r, WinXRun, Off
-; return
 
 ; Replaced by modifying WinX Menu (see Group3 email)
 ; ~#x:: ; Replace Powershell with TerminalPreview in WinX Menu
@@ -465,6 +452,27 @@ Enter::
 
 #If WinActive("ahk_group linux_shell")
 Insert::return  ; avoid accidentally breaking vim 
+~1::Tooltip(,A_ThisHotkey)
+; Hacky fix for bash reverse-i-search slowness when TAB key is used
+; 1/1/2024: tentatively no longer needed
+;~^r::return     ; triggers reverse-i-search
+;~Left::     ; keys that quit reverse-i-search
+;~Right::    ; tilde so we dont suppress the key for normal use
+;~Enter::
+;~Home::
+;~End::
+;~Esc::
+;~^c::return
+;$Tab::
+;    ; If we're still in reverse-i-search
+;    if (A_PriorHotkey == "~^r") {
+;        Tooltip(, "Warning: Tab crisis averted")
+;        Send {right}
+;    } else {
+;        Send {Tab}
+;    }
+;    return
+
 
 #If WinActive("ahk_exe PowerToys.PowerLauncher.exe") ; Remap Run commands
 ^+#=::SendInput ^+e ; Open file path
@@ -481,28 +489,6 @@ $#r::Send {Esc}!{Space}
         Send {Media_Play_Pause}
         ; Sleep 100
         ; Send {Space}
-    }
-    return
-
-; Git Bash remaps
-; Hacky fix for bash reverse-i-search slowness when TAB key is used
-#If WinActive("ahk_group linux_shell")
-; #if WinActive("ahk_exe mintty.exe") or WinActive("ahk_exe ubuntu.exe") or WinActive("ahk_exe wsl.exe")
-~^r::return     ; triggers reverse-i-search
-~Left::     ; keys that quit reverse-i-search
-~Right::    ; tilde so we dont suppress the key for normal use
-~Enter::
-~Home::
-~End::
-~Esc::
-~^c::return
-$Tab::
-    ; If we're still in reverse-i-search
-    if (A_PriorHotkey == "~^r") {
-        Tooltip(, "Warning: Tab crisis averted")
-        Send {right}
-    } else {
-        Send {Tab}
     }
     return
 
@@ -731,6 +717,7 @@ if FileExist("Files\lib\NoInput.ahk")
     Run, "Files\lib\NoInput.ahk"    ; RunAsUser exception
 return
 
+
 TechKeys:
 if FileExist(Malek . "\TechKeys.ahk") {
     Run, %Malek%\TechKeys.ahk
@@ -742,10 +729,12 @@ if FileExist(Malek . "\TechKeys.ahk") {
 }
 return
 
+
 YouTubeSpeed:
 if FileExist("YouTubeSpeed.ahk")
     RunAsUser(A_AhkPath, """" . AHK . "\XPS Programs\YouTubeSpeed.ahk" . """")
 return
+
 
 ResetMisc:
 if FileExist(MMPath) {
@@ -822,6 +811,7 @@ else { ; if ... (Space for future Exceptions)
 num := ""
 return
 
+
 CheckModifiers:
 ; https://www.autohotkey.com/docs/KeyList.htm#modifier
 ; modifiers := ["Shift", "RShift", "LShift", "Ctrl", "RCtrl", "LCtrl", "Win", "LWin", "RWin", "Alt", "RAlt", "LAlt"]
@@ -849,6 +839,7 @@ if (ToolTipChanged) {
 SetTimer,, On   ; Resume slower periodic  testing
 return
 
+
 ; Reset Focus Assist to show all notifications
 ClearFocusAssist:
 Send #b{left}{appskey}fo
@@ -857,20 +848,13 @@ Send !{Esc}
 Tooltip(2500, "Focus Assistant: Cleared")
 return
 
+
 MiscKiller:
 return
 
-; WinXRun:
-; if (A_ThisHotkey = "#r")
-    ; Send {left}#xr
-; if (A_ThisHotkey = "r")
-    ; tooltip r
-; return
 
 RunTerminal:
 Send #x{left}{Esc}
-; Run, explorer.exe "shell:AppsFolder\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe!App"
-; Run wt.exe
 RunAsUser("C:\Users\Malek\AppData\Local\Microsoft\WindowsApps\wt.exe") ; Launch Windows Terminal
 return
 
@@ -878,10 +862,8 @@ return
 Nothing:
 return
 
-RemoveToolTip:
-ToolTip
-return
 
+RemoveToolTip:
 RemoveToolTip():
 ToolTip
 return
