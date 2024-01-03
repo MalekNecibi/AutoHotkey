@@ -98,7 +98,7 @@ Loop 10 {
     SetTitleMatchMode, %saveTitleMatchMode%
     return
     
-^+#!x:: ; Force Pause+Suspend All AHK Scripts
+^+#!x:: ; Force Pause and Suspend All AHK Scripts
     Suspend, Permit
     DetectHiddenWindows On
     WinGet, ID, List, ahk_class AutoHotkey
@@ -112,9 +112,9 @@ Loop 10 {
 
 ^+#e::Reload
 ^+!e::RunAsUser("C:\Program Files\Notepad++\notepad++.exe", """" . A_ScriptFullPath . """") ; Edit this script in Notepad++
-; ^+#!e::Suspend
-^+#!e::
+^+#!e::     ; Temporarily ignore this script
     Suspend, Permit
+    ; Suspend MUST be the first line or AHK wont listen for it
     if (A_IsSuspended != A_IsPaused) {
         ; If only 1 enabled, assume safety : enable both
         Suspend, On
@@ -127,49 +127,47 @@ Loop 10 {
     return
 ^+!n::RunAsUser("C:\Program Files\Notepad++\notepad++.exe") ; Launch Notepad++
 ^+#n::
-    ; Run, notepad++.exe ; Launch and Create New Notepad++ Page
-    RunAsUser("C:\Program Files\Notepad++\notepad++.exe")
-    WinWaitActive, ahk_class Notepad++,, 5 ; ahk_exe notepad++.exe,, 5
+    RunAsUser("C:\Program Files\Notepad++\notepad++.exe")   ; Launch Notepad++ AND Create New  Page
+    WinWaitActive, ahk_class Notepad++,, 5
     if !ErrorLevel
-        ; Sleep 50 ; 250
-        Send !fn ; ^n
+        Send !fn
     return
 
-^+!p::RunAsUser("C:\Program Files\Notepad++\notepad++.exe", "%UserProfile%\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt") ; Edit PowerShell History
+^+!p::RunAsUser("C:\Program Files\Notepad++\notepad++.exe", "%UserProfile%\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt") ; View PowerShell History
 ^+#s::oneRun("ahk_exe SpotifyLyrics.exe", Malek . "SpotifyLyrics.exe")
 
->^Esc::Goto, NoInput ; Launch NoInput
-^+#y::Goto, YouTubeSpeed ; Launch YouTubeSpeed
+>^Esc::Goto, NoInput        ; Launch NoInput
+; ^+#y::Goto, YouTubeSpeed    ; Launch YouTubeSpeed
 
 ; ^+#t::Goto, TechKeys ; Run TechKeys Macro Remap
 ; ^+#!t::return ; Run, notepad++.exe %Malek%\TechKeys.ahk ; Edit TechKeys Mappings
 
-; +Volume_Up::SoundSet, +1 ; Increment Volume by 1
-; +Volume_Down::SoundSet, -1 ; Decrement Volume by 1
-
-; ^!Up::MouseMove, 3737, -1080 ; Center of BenQ
-; ^!Down::MouseMove, 960, 600 ; Center of XPS
-
-; ^!m::Run bthprops.cpl ; "Quick-Connect" to Bluetooth Device (#k instead)
-; ^!m::RunAsUser("rundll32./exe", "shell32.dll,Control_RunDLL bthprops.cpl") ; Run bthprops.cpl 
+; Force Connect Bluetooth device
 ^+#1::ConnectBT("Powerbeats Pro")
 ^+#2::ConnectBT("Malek's QC35")
 ^+#3::ConnectBT("Tribit Stormbox")
-; ^+#4::ConnectBT("TOZO-T10")
-^+#4::ConnectBT("TOZO-T10 (Black)", "58:fc:c6:39:ae:0a")
-; ^+#5::ConnectBT("TOZO-T10 (White)")
+^+#4::ConnectBT("TOZO-T10 (Black)", "58:fc:c6:39:ae:0a")    ; MAC address b/c names are actually identical (same model)
 ^+#5::ConnectBT("TOZO-T10 (White)", "58:fc:c6:bc:27:58")
-^+#0::ConnectBT(0)
+^+#0::ConnectBT(0)  ; Hacky Fix
 
-$>!\:: ; calc.exe Shortcuts, only 1 instance
+; Open/Resume Calculator, limit number of instances
+$>!\::
 $>^\::
 $>^>!\::oneRun("Calculator","calc.exe",, "Calculator")
 
-$+F6::BrightnessSetter.SetBrightness(-1) ; Fine Brightness Control
-$+F7::BrightnessSetter.SetBrightness(+1)
-
-; $^F6::BrightnessSetter.SetBrightness(-100) ; Absolute Brightness Control
-; $^F7::BrightnessSetter.SetBrightness(+100)
+; Fine Brightness Control
+$^F6::BrightnessSetter.SetBrightness(-1)
+$^F7::BrightnessSetter.SetBrightness(+1)
+~$+F6::
+    ToolTip(,"WARNING: Deprecated")
+    BrightnessSetter.SetBrightness(-2)
+    return
+~$+F7::
+    ToolTip(,"WARNING: Deprecated")
+    BrightnessSetter.SetBrightness(+2)
+    return
+$^+F6::BrightnessSetter.SetBrightness(-3)
+$^+F7::BrightnessSetter.SetBrightness(+3)
 
 ^+v:: ; Paste Text Only w/o changing
     ClipSave := ClipboardAll
@@ -184,43 +182,21 @@ $+F7::BrightnessSetter.SetBrightness(+1)
     ClipText := ""
     return
 
-
-^+#m::RunAsUser(A_AhkPath, MMPath)
-+#m::return     ; Avoid common misclick
-^+!m::RunAsUser("C:\Program Files\Notepad++\notepad++.exe", MMPath)
-; ^+!m:: Run, notepad++.exe %Malek%\MiscMacro.ahk ; Edit MiscMacro if Taskbar Selected
-
-; Replaced by modifying WinX Menu (see Group3 email)
-; ~#x:: ; Replace Powershell with TerminalPreview in WinX Menu
-;     Hotkey, i, RunTerminal, On
-;     KeyWait, i, D T3
-;     ; Wait max 3 seconds for 'i' key override
-;     Hotkey, i, RunTerminal, Off
-; return
+; MiscMacro (for quick temporary remaps/scripts)
+^+#m::RunAsUser(A_AhkPath, MMPath)                                  ; (Re)Start MiscMacro
+; +#m::return                                                       ; Avoid common misclick
+^+!m::RunAsUser("C:\Program Files\Notepad++\notepad++.exe", MMPath) ; Edit MiscMacro
 
 $Insert::return ; Ignore accidental Insert
 
-; Custom Window Snap (top-half, bottom-half, re-center)
-#!Up::WindowSnap(2, 1, 1, 1)
-#!Down::WindowSnap(2, 1, 2, 1)
-; #Up::WinMaximize, A
-; #Up::Send #{Right} ; FancyZones
-; #Down::WindowSnap(8, 6, 2, 2, 6, 4)
-; #Down::WindowSnap(10, 6, 3, 2, 6, 4)
+; Custom Window Snap
+#!Up::WindowSnap(2, 1, 1, 1)    ; Snap to top half
+#!Down::WindowSnap(2, 1, 2, 1)  ; Snap to bottom half
 
-; Snipping Tool Quick-Launch
-^+!s::
-    ; Run, snippingtool.exe
-    RunAsUser("SnippingTool.exe")
-    WinWaitActive, ahk_exe SnippingTool.exe
-    ; Send ^s   ; Enable to avoid losing previous (unsaved) snip
-    Send ^n
-    return
-
+; PowerToys 
 $#r::Send !{space}
 $!r::Send #r
 #t::GoSub, RunTerminal
-#If
 
 ; Disable built-in Office Shortcut
 #^!Shift::
@@ -228,7 +204,7 @@ $!r::Send #r
 #!+Ctrl::
 ^!+LWin::
 ^!+RWin::
-    Suspend, Permit     ; Even when suspended
+    Suspend, Permit     ; Even when script disabled
     Send {Blind}{vkFF}
     return
 
@@ -236,11 +212,11 @@ $!r::Send #r
 
 ; Conditional Remaps - Begin
 #If WinActive("ahk_exe explorer.exe")
-AppsKey:: ; Extended Context Menu
+AppsKey:: ; Extended Context Menu (e.g. Open Linux shell here)
 RButton::
     SendInput {shift down}{%A_ThisHotkey%}{shift up}
     return
-^+#=::SendInput {AppsKey}n{Left}{Enter}{Esc 2} ; Edit with Notepad++
+^+#=::SendInput {AppsKey}n{Left}{Enter}{Esc 2} ; Edit selection with Notepad++
 ^+#p:: ; Convert Selected File to Searchable PDF (ocr)
     ClipSave := ClipboardAll
     Clipboard := ""
@@ -337,14 +313,10 @@ RButton::
     return
 
 ; https://support.google.com/chrome/answer/157179 ; Chrome keyboard shortcuts
-; #If WinActive("ahk_class Chrome_WidgetWin_1") ; Google Chrome
 #If WinActive("ahk_exe chrome.exe") ; Google Chrome
->^>!VK4C::
-^+#VK4C::
-    SendInput ^+x
-    return
-Esc::   ; Hide Console then close Inspect Element
-; $Esc::
+^+#l::SendInput ^+x
+$Esc::   ; Hide Console then close Inspect Element
+; Esc::
     saveTextState := A_DetectHiddenText
     DetectHiddenText, off
     WinGetText, chromeText,, Chrome Legacy Window
@@ -355,10 +327,9 @@ Esc::   ; Hide Console then close Inspect Element
     }
     DetectHiddenText, %saveTextState%
     return
-~Rbutton::  ; Duplicate Tab shortcut (RButton + d within 1.5 seconds)
+~Rbutton::  ; Duplicate Tab shortcut (Tab RButton + d within 1.5 seconds)
     MouseGetPos,, yPos
     if (yPos <= 61) {   ; right clicked on a tab selector
-        ; Hotkey, IfWinActive, ahk_class Chrome_WidgetWin_1
         Hotkey, IfWinActive, ahk_exe chrome.exe
         Hotkey, d, DuplicateTab
         Hotkey, d, On
@@ -377,10 +348,13 @@ $^+r::SendInput ^+t
 
 
 #If WinActive("ahk_exe winword.exe") or WinActive("ahk_exe powerpnt.exe")
-^PgDn::^Right
+^PgDn::^Right   ; XPS Keyboard minor grievance
 ^PgUp::^Left
 <^Backspace::
-    BatchSave := A_BatchLines, KeySave := A_KeyDelay, ClipSave := ClipboardAll
+    ; Make Ctrl+Backspace work the same as everywhere else: spaces don't count as full words
+    BatchSave := A_BatchLines
+    KeySave := A_KeyDelay
+    ClipSave := ClipboardAll
     SetBatchLines, -1
     SetKeyDelay, -1
     Clipboard := ""
@@ -393,7 +367,8 @@ $^+r::SendInput ^+t
     Clipboard := ClipSave
     SetKeyDelay, %KeySave%
     SetBatchLines, %BatchSave%
-    BatchSave:="", KeySave:="", ClipSave:=""
+    ClipSave := ""
+    ; hacky fix to avoid modifiers sticking on
     Send {LShift}{RShift}{LCtrl}{RCtrl}
     Send {LShift}
     Send {RShift}
@@ -401,28 +376,13 @@ $^+r::SendInput ^+t
     Send {RCtrl}
     Send {LShift}{RShift}{LCtrl}{RCtrl}
     return
-^.::Send *{Tab}
+^.::Send *{Tab}     ; bullet point
 <^f::Send {Esc}^f
 
-#If WinActive("ahk_exe notepad++.exe")
-; ^0::SendInput ^{NumpadDiv}
-; ^=::SendInput ^{NumpadAdd}
-; ^-::SendInput ^{NumpadSub}
-; ^/::^q
-; Insert::End
-
-#If WinActive("ahk_exe javaw.exe") && WinExist(" | Arduino ")
-!s::^r          ; Compile code from !s
-^q::return      ; Prevent accidentally closing Arduino
-Insert::return  ; Often accidentally pressed instead of End
+#If WinActive("ahk_exe Arduino IDE.exe")
+^q::    ; Avoid accidentally closing Arduino
 ^w::
     Tooltip(, "You almost closed the Arduino IDE!")
-    return
-^0::
-    SendInput ^{,}
-    WinWaitActive, Preferences
-    if !ErrorLevel
-        Send {Tab 3}^a12+{Tab 5}{Enter}
     return
 
 #If !WinExist("TechKeys.ahk ahk_class AutoHotkey")
@@ -814,7 +774,6 @@ return
 
 CheckModifiers:
 ; https://www.autohotkey.com/docs/KeyList.htm#modifier
-; modifiers := ["Shift", "RShift", "LShift", "Ctrl", "RCtrl", "LCtrl", "Win", "LWin", "RWin", "Alt", "RAlt", "LAlt"]
 modifiers := ["RShift", "LShift", "RCtrl", "LCtrl", "RWin", "LWin", "RAlt", "LAlt"]
 ToolTipChanged := false
 Loop {
@@ -840,16 +799,12 @@ SetTimer,, On   ; Resume slower periodic  testing
 return
 
 
-; Reset Focus Assist to show all notifications
+; Reset Focus Assist (Do Not Disturb) to show all notifications
 ClearFocusAssist:
 Send #b{left}{appskey}fo
 Sleep 50
 Send !{Esc}
 Tooltip(2500, "Focus Assistant: Cleared")
-return
-
-
-MiscKiller:
 return
 
 
