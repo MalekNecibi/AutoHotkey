@@ -62,6 +62,16 @@ Loop 10 {
 }
 ; Hotkey Command Remaps - End
 
+; Global Variables - Start
+BT_Devices := [   ["Powerbeats Pro"     , ""]                       ; 1
+                , ["Malek's QC35"       , ""]                       ; 2
+                , ["Tribit Stormbox"    , ""]                       ; 3
+                , ["TOZO-T10 (Black)"   , "58:fc:c6:39:ae:0a"]      ; 4 : MAC Address b/c identical device names
+                , ["TOZO-T10 (White)"   , "58:fc:c6:bc:27:58"]  ]   ; 5
+; Global Variables - End
+
+return
+
 ; Global Remaps - Begin
 <!x::
     saveTitleMatchMode := A_TitleMatchMode
@@ -143,12 +153,27 @@ Loop 10 {
 ; ^+#!t::return ; Run, notepad++.exe %Malek%\TechKeys.ahk ; Edit TechKeys Mappings
 
 ; Force Connect Bluetooth device
-^+#1::ConnectBT("Powerbeats Pro")
-^+#2::ConnectBT("Malek's QC35")
-^+#3::ConnectBT("Tribit Stormbox")
-^+#4::ConnectBT("TOZO-T10 (Black)", "58:fc:c6:39:ae:0a")    ; MAC address b/c names are actually identical (same model)
-^+#5::ConnectBT("TOZO-T10 (White)", "58:fc:c6:bc:27:58")
-^+#0::ConnectBT(0)  ; Hacky Fix
+; Using global variable BT_Devices (set on launch)
+^+#1::
+^+#2::
+^+#3::
+^+#4::
+^+#5::
+    bt_id := SubStr(A_ThisHotkey, 0)        ; Just use the number digit
+    bt_device := BT_Devices[bt_id]
+    bt_name := bt_device[1]
+    bt_mac  := bt_device[2]
+    ConnectBT(bt_name, bt_mac)
+    return
+^+#0::  ; Fix Occasional Bug, Display all the id's
+    ; TODO : only compute BT_Names once
+    BT_Names := ""
+    For bt_id, bt_device in BT_Devices {
+        BT_Names := BT_Names . bt_id . " : " . bt_device[1] . "`r`n"
+    }
+    ConnectBT("","")
+    ToolTip(2500, BT_Names)
+    return
 
 ; Open/Resume Calculator, limit number of instances
 $>!\::
@@ -471,8 +496,8 @@ $#r::Send {Esc}!{Space}
 
 
 ; Functions - Begin
-ConnectBT(DeviceName := "", MAC :="") { ; Input 0 to fix issues with Connect Menu
-    ToolTip(,DeviceName)
+ConnectBT(DeviceName := "", MAC := "") { ; Input "" to fix issues with Connect Menu
+    ToolTip(, DeviceName)
     ; Turn on Bluetooth
     btScriptPath := A_WorkingDir . "\Files\scripts\bluetooth.ps1"
     if ( FileExist(btScriptPath) ) {
@@ -483,12 +508,11 @@ ConnectBT(DeviceName := "", MAC :="") { ; Input 0 to fix issues with Connect Men
         Sleep 1000
     }
     
-    
     if ("" == MAC) {
         ; Use Windows Bluetooth Devices Menu
-        if (0 != DeviceName && WinActive("CONNECT") && WinActive("ahk_class Windows.UI.Core.CoreWindow")) {
+        if ("" != DeviceName && WinActive("CONNECT") && WinActive("ahk_class Windows.UI.Core.CoreWindow")) {
             ; If Connect Menu already open, safely close it
-            ConnectBT(0)
+            ConnectBT("")
             Sleep 500
         }
         
@@ -499,13 +523,13 @@ ConnectBT(DeviceName := "", MAC :="") { ; Input 0 to fix issues with Connect Men
         if ErrorLevel {
             ToolTip(1500, "ConnectBT() Error: Couldn't open CONNECT QuickMenu")
             ; Optional, open Bluetooth Settings menu if Connect QuickMenu doesn't open
-            ; if (0 != DeviceName)
+            ; if ("" != DeviceName)
                 ; Run bthprops.cpl
             return
         }
         
         ; Fixes Connect QuickMenu issues
-        if (0 == DeviceName) {
+        if ("" == DeviceName) {
             SendInput -{Tab}-{Tab}-{Tab}-{Tab}-{Tab}-{Esc}
         
         ; Search and Select the given device
