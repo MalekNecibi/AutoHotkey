@@ -547,9 +547,10 @@ ConnectBT(DeviceName := "", MAC := "") { ; Input "" to fix issues with Connect M
     
     } else {
         ; Use Bluetooth Command Line Tools (via MAC address)
+        
+        ToolTip(3000, "This may take over 30 seconds...`r`n" . DeviceName)
         RunWait, "C:\Program Files (x86)\Bluetooth Command Line Tools\bin\btcom.exe" -b'%MAC%' -r -s110b,, Hide
         RunWait, "C:\Program Files (x86)\Bluetooth Command Line Tools\bin\btcom.exe" -b'%MAC%' -c -s110b,, Hide
-        Tooltip
     }
     
     return
