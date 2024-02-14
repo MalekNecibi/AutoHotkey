@@ -4,6 +4,7 @@ Header:
 Menu, Tray, Add, Exit NoInput, ExitNI
 Menu, Tray, Default, Exit NoInput
 FinishHeader("FRX")
+SetWorkingDir %A_ScriptDir%
 
 #If
 TOGGLE_HOTKEY=>^Esc
@@ -39,11 +40,12 @@ BlockMouseClicks(LockState)
 if (LockState == "On") {
 	MouseGetPos, mouseX, mouseY
 	BlockInput MouseMove
-	ToolTip, Locked (Hint: >^F0)
+	ToolTip, Locked
 	Menu, Tray, Icon, %LockedIcon%
 	SetTimer, ExitNI, Off
 } else {
 	BlockInput,MouseMoveOff
+    FixCursor()
 	ToolTip, Free
 	Menu, Tray, Icon, %FreeIcon%
 	SetTimer, ExitNI, On
@@ -132,6 +134,24 @@ SystemCursor(OnOff=1)   ; INIT = "I","Init"; OFF = 0,"Off"; TOGGLE = -1,"T","Tog
       DllCall( "SetSystemCursor", "uint",h_cursor, "uint",c%A_Index% )
    }
 }
+
+; Occasionally the mouse cursor disappears around text boxes after using NoInput
+; Reapplying the currently selected mouse cursor profile seems to do the trick
+FixCursor()
+{
+    static cursor_warning_displayed := 0    ; only warn once if missing
+    fixCursorScriptPath := A_WorkingDir . "\FixCursor.ps1"
+    if ( FileExist(fixCursorScriptPath) ) {
+        Run, powershell.exe -file "%fixCursorScriptPath%" ,, Hide
+    } else {
+        if (0 == cursor_warning_displayed) {
+            cursor_warning_displayed = 1
+            ToolTip ; hide 'Locked' tooltip as RemoveToolTip blocked
+            MsgBox, 0, WARNING: NoInput.ahk, Could not locate FixCursor.ps1`r`nMouse Cursor may intermittetantly disappear near text fields`r`n`r`n%fixCursorScriptPath%, 10
+        }
+    }
+}
+
 
 RemoveToolTip:
 SetTimer, RemoveToolTip, Off

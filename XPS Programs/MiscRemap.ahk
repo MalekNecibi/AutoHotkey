@@ -30,6 +30,8 @@ if FileExist("Files\lib\NoInput.ahk")
     Menu, Tray, Add, Launch &NoInput, NoInput
 if FileExist(Malek . "\TechKeys.ahk")
     Menu, Tray, Add, Launch &TechKeys, TechKeys
+if FileExist(A_WorkingDir . "\Files\lib\FixCursor.ps1")
+    Menu, Tray, Add, Fix Hidden &Mouse, FixCursor
 FinishHeader(1)
 
 GroupAdd, linux_shell, "ahk_exe ubuntu.exe"
@@ -184,11 +186,13 @@ $>^>!\::oneRun("Calculator","calc.exe",, "Calculator")
 $^F6::BrightnessSetter.SetBrightness(-1)
 $^F7::BrightnessSetter.SetBrightness(+1)
 ~$+F6::
-    ToolTip(,"WARNING: Deprecated")
+    ToolTip(,"WARNING: Shift Deprecated" "`r`n" "-1 : Ctrl+F6" "`r`n" "-3 : Ctrl+Shift+F6")
+    Sleep 250 ; dissuade
     BrightnessSetter.SetBrightness(-2)
     return
 ~$+F7::
-    ToolTip(,"WARNING: Deprecated")
+    ToolTip(,"WARNING: Shift Deprecated" "`r`n" "+1 : Ctrl+F7" "`r`n" "+3 : Ctrl+Shift+F7")
+    Sleep 250 ; dissuade
     BrightnessSetter.SetBrightness(+2)
     return
 $^+F6::BrightnessSetter.SetBrightness(-3)
@@ -711,6 +715,14 @@ if FileExist(Malek . "\TechKeys.ahk") {
         ToolTip, TechKeys is now running
         SetTimer, RemoveToolTip, -1500
     }
+}
+return
+
+
+FixCursor:
+fixCursorScriptPath := A_WorkingDir . "\Files\lib\FixCursor.ps1"
+if ( FileExist(fixCursorScriptPath) ) {
+    Run, powershell.exe -file "%fixCursorScriptPath%" ,, Hide
 }
 return
 
