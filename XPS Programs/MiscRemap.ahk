@@ -34,12 +34,6 @@ if FileExist(A_WorkingDir . "\Files\lib\FixCursor.ps1")
     Menu, Tray, Add, Fix Hidden &Mouse, FixCursor
 FinishHeader(1)
 
-GroupAdd, linux_shell, "ahk_exe ubuntu.exe"
-GroupAdd, linux_shell, "ahk_exe mintty.exe"
-GroupAdd, linux_shell, "ahk_exe MobaXterm.exe"
-GroupAdd, linux_shell, "ahk_exe wsl.exe"
-; GroupAdd, linux_shell, "ahk_exe WindowsTerminal.exe"
-
 #If
 ; Remaps - Begin
 
@@ -225,7 +219,6 @@ $Insert::return ; Ignore accidental Insert
 ; PowerToys 
 $#r::Send !{space}
 $!r::Send #r
-#t::GoSub, RunTerminal
 
 ; Disable built-in Office Shortcut
 #^!Shift::
@@ -344,18 +337,6 @@ RButton::
 ; https://support.google.com/chrome/answer/157179 ; Chrome keyboard shortcuts
 #If WinActive("ahk_exe chrome.exe") ; Google Chrome
 ^+#l::SendInput ^+x
-$Esc::   ; Hide Console then close Inspect Element
-; Esc::
-    saveTextState := A_DetectHiddenText
-    DetectHiddenText, off
-    WinGetText, chromeText,, Chrome Legacy Window
-    if (chromeText == "Chrome Legacy Window`r`nChrome Legacy Window`r`n") {
-        SendInput {F12} ; Hide Console then close Inspect Element
-    } else {
-        SendInput {Esc}
-    }
-    DetectHiddenText, %saveTextState%
-    return
 ~Rbutton::  ; Duplicate Tab shortcut (Tab RButton + d within 1.5 seconds)
     MouseGetPos,, yPos
     if (yPos <= 61) {   ; right clicked on a tab selector
@@ -438,30 +419,6 @@ Enter::
     Clipboard := ClipSave
     ClipSave := ""
     return
-
-#If WinActive("ahk_group linux_shell")
-Insert::return  ; avoid accidentally breaking vim 
-~1::Tooltip(,A_ThisHotkey)
-; Hacky fix for bash reverse-i-search slowness when TAB key is used
-; 1/1/2024: tentatively no longer needed
-;~^r::return     ; triggers reverse-i-search
-;~Left::     ; keys that quit reverse-i-search
-;~Right::    ; tilde so we dont suppress the key for normal use
-;~Enter::
-;~Home::
-;~End::
-;~Esc::
-;~^c::return
-;$Tab::
-;    ; If we're still in reverse-i-search
-;    if (A_PriorHotkey == "~^r") {
-;        Tooltip(, "Warning: Tab crisis averted")
-;        Send {right}
-;    } else {
-;        Send {Tab}
-;    }
-;    return
-
 
 #If WinActive("ahk_exe PowerToys.PowerLauncher.exe") ; Remap Run commands
 ^+#=::SendInput ^+e ; Open file path
@@ -842,12 +799,6 @@ Send #b{left}{appskey}fo
 Sleep 50
 Send !{Esc}
 Tooltip(2500, "Focus Assistant: Cleared")
-return
-
-
-RunTerminal:
-Send #x{left}{Esc}
-RunAsUser("C:\Users\Malek\AppData\Local\Microsoft\WindowsApps\wt.exe") ; Launch Windows Terminal
 return
 
 
