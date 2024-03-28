@@ -357,6 +357,16 @@ $>!PgUp::SendInput ^+{Tab} ; ^(PgUp}
 ; $>!LButton::SendInput >^{LButton}
 $^+r::SendInput ^+t
 
+; LeetCode Accidental Submit
+; Better solution: LeetCode Settings -> Shortcuts -> Submit (deselect)
+#If WinActive("ahk_exe chrome.exe") and WinActive(" - LeetCode - Google Chrome")
+; ~Ctrl & Enter::
+; ~Enter & Ctrl::
+;     ToolTip(,"auto-submit ignored")
+;     return
+RAlt::
+    Tooltip(,"lc alt")
+    return
 
 #If WinActive("ahk_exe winword.exe") or WinActive("ahk_exe powerpnt.exe")
 ^PgDn::^Right   ; XPS Keyboard minor grievance
@@ -744,7 +754,7 @@ return
 
 
 DuplicateTab:
-SendInput {Down 6}
+SendInput {m 2}{up 2}
 Send +{Enter}
 SetTimer, ClearDuplicateTabHotkey, Off
 GoSub, ClearDuplicateTabHotkey
