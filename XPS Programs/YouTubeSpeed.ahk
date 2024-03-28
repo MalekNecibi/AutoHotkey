@@ -3,6 +3,7 @@
 Header:
 FinishHeader(0)
 FinishHeader(1)
+Menu, Tray, Icon, %A_ScriptDir%\Files\Images\YouTube.ico
 SetTitleMatchMode, 2
 
 
