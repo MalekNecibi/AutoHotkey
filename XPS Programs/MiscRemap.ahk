@@ -15,6 +15,7 @@ SetTitleMatchMode, 2
 CoordMode, Mouse, Screen ; for Mouse monitor remap
 DetectHiddenWindows, on
 VarSetCapacity(CursorPos, 4+4, 0)
+DllCall("SetThreadDpiAwarenessContext", "ptr", -3, "ptr")   ; Ignore DPI Scaling
 SetTimer, MousePortal, 50
 SetTimer, CheckModifiers, 250
 SetTimer, ClearFocusAssist, % 4*60*60*1000  ; Reset Focus Assist Every 4 hours
@@ -712,6 +713,7 @@ return
 
 
 MousePortal:    ; Teleport mouse cursor between monitors in the corner
+; DllCall("SetThreadDpiAwarenessContext", "ptr", -3, "ptr")     ; avoid dpi scaling off-by-one pixel
 SysGet, numDisplays, 80 ; SM_CMONITORS ; Get number of displays
 if (numDisplays = 1)
     return
