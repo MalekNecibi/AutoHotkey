@@ -10,21 +10,23 @@ FinishHeader(1)
 ; Enable the bottom checkbox under "High DPI scaling override"
 ; Leave the default Dropdown option of "Application"
 ; Click OK, then Apply, then OK
-; Comment out the instamces below of DllCall(SetThreadDpiAwarenessContext, -4)
+; Comment out the instances below of DllCall SetThreadDpiAwarenessContext
 
 SetTitleMatchMode, 2
 #Persistent
 ; Ignore DPI scaling (prevents inconsistent pixel rounding)
 
-MousePortal_Configure(,,wrap=true)
+MousePortal_Configure() ; (,,wrap=true) ; for wraparound from last monitor to first
 
 return
 
 !`::MsgBox % CursorCoords
 
 
-; When mouse pointer is in top-left or bottom-right corner of any display,
-; teleport mouse to next or previous display respectively (wraparound optional)
+; When mouse pointer is in top-left or bottom-right corner of any display...
+; Teleport mouse to next or previous display respectively (wraparound optional)
+; wParam, lParam: ignore, just present for OnMessage and notifications during auto-configuration
+; wrap: should the last monitor wraparound to the first one
 MousePortal_Configure(wParam=0, lParam=0, wrap=false) {
     ; width := lParam & 0xffff  
     ; height := (lParam >> 16) & 0xffff
