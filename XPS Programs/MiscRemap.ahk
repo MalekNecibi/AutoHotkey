@@ -15,7 +15,6 @@ SetTitleMatchMode, 2
 CoordMode, Mouse, Screen ; for Mouse monitor remap
 DetectHiddenWindows, on
 VarSetCapacity(CursorPos, 4+4, 0)
-DllCall("SetThreadDpiAwarenessContext", "ptr", -3, "ptr")   ; Ignore DPI Scaling
 SetTimer, MousePortal, 50
 SetTimer, CheckModifiers, 250
 SetTimer, ClearFocusAssist, % 4*60*60*1000  ; Reset Focus Assist Every 4 hours
@@ -723,7 +722,9 @@ return
 
 
 MousePortal:    ; Teleport mouse cursor between monitors in the corner
-; DllCall("SetThreadDpiAwarenessContext", "ptr", -3, "ptr")     ; avoid dpi scaling off-by-one pixel
+; If a new "thread" created elsewhere DPI awareness temporarily resets (e.g. MsgBox)
+; TODO: better way to detect if new thread spawned and DPI awareness changed
+DllCall("SetThreadDpiAwarenessContext", "ptr", -4, "ptr")     ; avoid dpi scaling off-by-one pixel
 SysGet, numDisplays, 80 ; SM_CMONITORS ; Get number of displays
 if (numDisplays = 1)
     return
